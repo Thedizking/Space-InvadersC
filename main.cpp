@@ -1,11 +1,12 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_image.h>
 #include <iostream>
 
 // Screen dimensions
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 600;
+const int SCREEN_WIDTH = 1800;
+const int SCREEN_HEIGHT = 900;
 
 int main(int argc, char* argv[]) {
     // 1. Initialize SDL Video Subsystem
@@ -66,6 +67,17 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    SDL_Texture* imageTexture = IMG_LoadTexture(renderer, "Sprites/invader.png");
+    if (!imageTexture) {
+        std::cout << "Failed to load image: " << IMG_GetError() << std::endl;
+    }
+
+    SDL_Rect destrect;
+    destrect.x = 100;
+    destrect.y = 50;
+    destrect.w = 100;
+    destrect.h = 100;
+
     // 4. Main Game Loop Variables
     bool isRunning = true;
     SDL_Event event;
@@ -88,11 +100,7 @@ int main(int argc, char* argv[]) {
         SDL_RenderClear(renderer);
 
         // --- DRAW YOUR GRAPHICS HERE ---
-        // Example: Draw a centered red rectangle
-        SDL_Rect rect = { SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT / 2 - 50, 100, 100 };
-        SDL_SetRenderDrawColor(renderer, 230, 50, 50, 255);
-        SDL_RenderFillRect(renderer, &rect);
-        // -------------------------------
+        SDL_RenderCopy(renderer, imageTexture, NULL, &destrect);
 
         // Update the screen display
         SDL_RenderPresent(renderer);
