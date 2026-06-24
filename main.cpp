@@ -5,7 +5,7 @@
 #include <iostream>
 
 // Screen dimensions
-const int SCREEN_WIDTH = 1800;
+const int SCREEN_WIDTH = 1400;
 const int SCREEN_HEIGHT = 900;
 
 int main(int argc, char* argv[]) {
@@ -72,11 +72,49 @@ int main(int argc, char* argv[]) {
         std::cout << "Failed to load image: " << IMG_GetError() << std::endl;
     }
 
+
+
+    // Rect for First sample image.
     SDL_Rect destrect;
-    destrect.x = 100;
-    destrect.y = 50;
+    destrect.x = 150;
+    destrect.y = 125;
     destrect.w = 100;
     destrect.h = 100;
+
+
+
+
+    // Rectangles to place fonts need to change hardcoded values for variables.
+    SDL_Rect creditsrect;
+
+
+
+    SDL_Rect livesrect;
+
+
+
+
+    SDL_Rect scorerect;
+
+
+
+
+    SDL_Rect SCORErect;
+
+
+
+
+    SDL_Rect hiscorerect;
+
+
+
+
+
+    SDL_Rect HISCORErect;
+
+
+
+
 
     // 4. Main Game Loop Variables
     bool isRunning = true;
@@ -100,6 +138,8 @@ int main(int argc, char* argv[]) {
         SDL_RenderClear(renderer);
 
         // --- DRAW YOUR GRAPHICS HERE ---
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_RenderDrawLine(renderer, 0, 825, 1400, 825);
         SDL_RenderCopy(renderer, imageTexture, NULL, &destrect);
 
         // Update the screen display
