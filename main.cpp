@@ -8,6 +8,9 @@
 const int SCREEN_WIDTH = 1400;
 const int SCREEN_HEIGHT = 900;
 
+
+int CREDITS = 00;
+
 int main(int argc, char* argv[]) {
     // 1. Initialize SDL Video Subsystem
     if (SDL_Init(SDL_INIT_VIDEO |  SDL_INIT_AUDIO) < 0) {
@@ -83,11 +86,31 @@ int main(int argc, char* argv[]) {
 
 
 
+    SDL_Color textColor = {255, 255, 255};
+    SDL_Surface*  creditsSurface = TTF_RenderText_Blended(font, "CREDITS", textColor);
+    SDL_Texture* creditsTexture = SDL_CreateTextureFromSurface(renderer, creditsSurface);
+
+    SDL_Surface*  CREDITSSurface = TTF_RenderText_Blended(font, std::to_string(CREDITS).c_str(), textColor);
+    SDL_Texture* CREDITSTexture = SDL_CreateTextureFromSurface(renderer, CREDITSSurface);
+
+
 
     // Rectangles to place fonts need to change hardcoded values for variables.
     SDL_Rect creditsrect;
+    creditsrect.x = 1000;
+    creditsrect.y = 850;
+    creditsrect.w = creditsSurface->w;
+    creditsrect.h = creditsSurface->h;
 
 
+
+    SDL_Rect CREDITSrect;
+    creditsrect.x = 1350;
+    creditsrect.y = 850;
+    creditsrect.w = CREDITSSurface->w;
+    creditsrect.h = CREDITSSurface->h;
+
+    SDL_FreeSurface(CREDITSSurface);
 
     SDL_Rect livesrect;
 
@@ -115,7 +138,6 @@ int main(int argc, char* argv[]) {
 
 
 
-
     // 4. Main Game Loop Variables
     bool isRunning = true;
     SDL_Event event;
@@ -133,14 +155,17 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // Clear the screen (Background Color: Dark Grey)
-        SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
+        // Color Screen background
+        SDL_SetRenderDrawColor(renderer, 30, 50, 70, 255);
         SDL_RenderClear(renderer);
 
         // --- DRAW YOUR GRAPHICS HERE ---
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderDrawLine(renderer, 0, 825, 1400, 825);
         SDL_RenderCopy(renderer, imageTexture, NULL, &destrect);
+
+        SDL_RenderCopy(renderer, creditsTexture, NULL, &creditsrect);
+        SDL_RenderCopy(renderer, CREDITSTexture, NULL, &creditsrect);
 
         // Update the screen display
         SDL_RenderPresent(renderer);
