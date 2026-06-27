@@ -10,6 +10,7 @@ const int SCREEN_HEIGHT = 900;
 
 
 int CREDITS = 00;
+int SCORE = 0000;
 
 int main(int argc, char* argv[]) {
     // 1. Initialize SDL Video Subsystem
@@ -93,22 +94,24 @@ int main(int argc, char* argv[]) {
     SDL_Surface*  CREDITSSurface = TTF_RenderText_Blended(font, std::to_string(CREDITS).c_str(), textColor);
     SDL_Texture* CREDITSTexture = SDL_CreateTextureFromSurface(renderer, CREDITSSurface);
 
+    SDL_Surface*  scoreSurface = TTF_RenderText_Blended(font, "SCORE", textColor);
+    SDL_Texture* scoreTexture = SDL_CreateTextureFromSurface(renderer, scoreSurface);
 
 
     // Rectangles to place fonts need to change hardcoded values for variables.
     SDL_Rect creditsrect;
-    creditsrect.x = 1000;
+    creditsrect.x = 1150;
     creditsrect.y = 850;
     creditsrect.w = creditsSurface->w;
     creditsrect.h = creditsSurface->h;
 
-
+    SDL_FreeSurface(creditsSurface);
 
     SDL_Rect CREDITSrect;
-    creditsrect.x = 1350;
-    creditsrect.y = 850;
-    creditsrect.w = CREDITSSurface->w;
-    creditsrect.h = CREDITSSurface->h;
+    CREDITSrect.x = 1350;
+    CREDITSrect.y = 850;
+    CREDITSrect.w = CREDITSSurface->w;
+    CREDITSrect.h = CREDITSSurface->h;
 
     SDL_FreeSurface(CREDITSSurface);
 
@@ -118,6 +121,10 @@ int main(int argc, char* argv[]) {
 
 
     SDL_Rect scorerect;
+    scorerect.x = 50;
+    scorerect.y = 50;
+    scorerect.w = scoreSurface->w;
+    scorerect.h = scoreSurface->h;
 
 
 
@@ -165,7 +172,8 @@ int main(int argc, char* argv[]) {
         SDL_RenderCopy(renderer, imageTexture, NULL, &destrect);
 
         SDL_RenderCopy(renderer, creditsTexture, NULL, &creditsrect);
-        SDL_RenderCopy(renderer, CREDITSTexture, NULL, &creditsrect);
+        SDL_RenderCopy(renderer, CREDITSTexture, NULL, &CREDITSrect);
+        SDL_RenderCopy(renderer, scoreTexture, NULL, &scorerect);
 
         // Update the screen display
         SDL_RenderPresent(renderer);
