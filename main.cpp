@@ -3,6 +3,7 @@
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_image.h>
 #include <iostream>
+#include <vector>
 
 // Screen dimensions
 const int SCREEN_WIDTH = 1400;
@@ -77,17 +78,47 @@ int main(int argc, char* argv[]) {
         std::cout << "Failed to load image: " << IMG_GetError() << std::endl;
     }
 
+    struct GameObject {
+      SDL_Rect destrect;
 
+      GameObject() {
+        destrect.x = 150;
+        destrect.y = 125;
+        destrect.w = 100;
+        destrect.h = 100;
+      }
+    };
 
-    // Rect for First sample image.
-    SDL_Rect destrect;
-    destrect.x = 150;
-    destrect.y = 125;
-    destrect.w = 100;
-    destrect.h = 100;
+    std::vector<GameObject> instances;
+    GameObject obj;
+    for(int i = 0; i < 11; i++) {
+      instances.push_back(obj);
+      obj.destrect.x += 100;
+    }
+  
+    obj.destrect.y += 100;
+    obj.destrect.x = 125;
 
+    for(int i = 0; i < 11; i++) {
+      instances.push_back(obj);
+      obj.destrect.x += 100;
+    }
 
+    obj.destrect.y += 100;
+    obj.destrect.x = 150;
 
+    for(int i = 0; i < 11; i++) {
+      instances.push_back(obj);
+      obj.destrect.x += 100;
+    }
+
+    obj.destrect.y += 100;
+    obj.destrect.x = 125;
+
+    for(int i = 0; i < 11; i++) {
+      instances.push_back(obj);
+      obj.destrect.x += 100;
+    }
     SDL_Color textColor = {255, 255, 255};
     SDL_Surface*  creditsSurface = TTF_RenderText_Blended(font, "CREDITS", textColor);
     SDL_Texture* creditsTexture = SDL_CreateTextureFromSurface(renderer, creditsSurface);
@@ -191,7 +222,10 @@ int main(int argc, char* argv[]) {
         // --- DRAW YOUR GRAPHICS HERE ---
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderDrawLine(renderer, 0, 825, 1400, 825);
-        SDL_RenderCopy(renderer, imageTexture, NULL, &destrect);
+
+        for (const auto& instance : instances) {
+          SDL_RenderCopy(renderer, imageTexture, NULL, &instance.destrect);
+        }
 
         SDL_RenderCopy(renderer, creditsTexture, NULL, &creditsrect);
         SDL_RenderCopy(renderer, CREDITSTexture, NULL, &CREDITSrect);
