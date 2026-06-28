@@ -10,19 +10,51 @@
 const int SCREEN_WIDTH = 1400;
 const int SCREEN_HEIGHT = 900;
 
+float shotCooldown = 0.0f;
 
-const int BULLET_WIDTH = 10;
-const int BULLET_HEIGHT = 10;
-int bulletY = 55;
 int CREDITS = 00;
 int SCORE = 0000;
 int HISCORE = 0000;
 const int SPEED = 10;
-const int BULLET_SPEED = 15;
 const int playerW = 150;
 const int playerH = 50;
 int playerX = SCREEN_WIDTH / 2 - playerW / 2;
 int playerY = 770;
+
+struct Bullet {
+  int x, y, dy;
+  bool active;
+
+  void update() {
+    y += dy;
+  }
+};
+
+std::vector<Bullet> bullets;
+
+void updateBullets(std::vector<Bullet>& bullets) {
+    for (auto it = bullets.begin(); it != bullets.end(); ) {
+        it->update();
+        
+        // Remove bullet if it goes off the top of the screen
+        if (it->y < 0) {
+            it = bullets.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+
+void renderBullets(SDL_Renderer* renderer, const std::vector<Bullet>& bullets) {
+    SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // Yellow color
+    
+    for (const auto& bullet : bullets) {
+        SDL_Rect rect = { static_cast<int>(bullet.x), static_cast<int>(bullet.y), 8, 16 };
+        SDL_RenderFillRect(renderer, &rect);
+    }
+}
+
 
 int main(int argc, char* argv[]) {
     // 1. Initialize SDL Video Subsystem
@@ -108,7 +140,12 @@ int main(int argc, char* argv[]) {
       }
     };
 
+
+
+
+
     std::vector<GameObject> instances;
+
     GameObject obj;
     for(int i = 0; i < 11; i++) {
       instances.push_back(obj);
@@ -246,15 +283,22 @@ int main(int argc, char* argv[]) {
           playerX += SPEED;
         }
 
-        SDL_Rect BULLET;
 
-        if (state[SDL_SCANCODE_SPACE]) {
-          SDL_Rect BULLET = {playerX - playerW / 2, bulletY, BULLET_WIDTH, BULLET_HEIGHT};
+        if (state[SDL_SCANCODE_SPACE] && shotCooldown <= 0.0f) {
+          Bullet newBullet;
+          newBullet.x = playerX + playerW / 2;
+          newBullet.y = playerY;
+          newBullet.dy = -15;
+          newBullet.active = true;
+
+          bullets.push_back(newBullet);
+          shotCooldown = 0.25f;
         }
 
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        SDL_RenderFillRect(renderer, &BULLET);
-        bulletY -= BULLET_SPEED;
+        if (shotCooldown > 0) {
+          shotCooldown -= 0.016f;  // Minus 16ms per frame assuming 60FPS this equals a quarter second.
+        }
+
 
         // Color Screen background
         SDL_SetRenderDrawColor(renderer, 30, 50, 70, 255);
@@ -271,6 +315,9 @@ int main(int argc, char* argv[]) {
         for (const auto& instance : instances) {
           SDL_RenderCopy(renderer, imageTexture, NULL, &instance.destrect);
         }
+
+        renderBullets(renderer, bullets);
+        updateBullets(bullets);
 
         SDL_RenderCopy(renderer, creditsTexture, NULL, &creditsrect);
         SDL_RenderCopy(renderer, CREDITSTexture, NULL, &CREDITSrect);
