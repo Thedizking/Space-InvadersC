@@ -11,10 +11,14 @@ const int SCREEN_WIDTH = 1400;
 const int SCREEN_HEIGHT = 900;
 
 
+const int BULLET_WIDTH = 10;
+const int BULLET_HEIGHT = 10;
+int bulletY = 55;
 int CREDITS = 00;
 int SCORE = 0000;
 int HISCORE = 0000;
 const int SPEED = 10;
+const int BULLET_SPEED = 15;
 const int playerW = 150;
 const int playerH = 50;
 int playerX = SCREEN_WIDTH / 2 - playerW / 2;
@@ -241,6 +245,16 @@ int main(int argc, char* argv[]) {
         if (state[SDL_SCANCODE_RIGHT] || state[SDL_SCANCODE_D]) {
           playerX += SPEED;
         }
+
+        SDL_Rect BULLET;
+
+        if (state[SDL_SCANCODE_SPACE]) {
+          SDL_Rect BULLET = {playerX - playerW / 2, bulletY, BULLET_WIDTH, BULLET_HEIGHT};
+        }
+
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_RenderFillRect(renderer, &BULLET);
+        bulletY -= BULLET_SPEED;
 
         // Color Screen background
         SDL_SetRenderDrawColor(renderer, 30, 50, 70, 255);
