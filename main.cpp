@@ -22,8 +22,9 @@ int playerX = SCREEN_WIDTH / 2 - playerW / 2;
 int playerY = 770;
 
 struct Bullet {
+  SDL_Rect bulletrect;
   int x, y, dy;
-  bool active;
+  bool active = true;
 
   void update() {
     y += dy;
@@ -36,6 +37,7 @@ void updateBullets(std::vector<Bullet>& bullets) {
     for (auto it = bullets.begin(); it != bullets.end(); ) {
         it->update();
         
+
         // Remove bullet if it goes off the top of the screen
         if (it->y < 0) {
             it = bullets.erase(it);
@@ -46,12 +48,12 @@ void updateBullets(std::vector<Bullet>& bullets) {
 }
 
 
-void renderBullets(SDL_Renderer* renderer, const std::vector<Bullet>& bullets) {
+void renderBullets(SDL_Renderer* renderer, std::vector<Bullet>& bullets) {
     SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // Yellow color
     
-    for (const auto& bullet : bullets) {
-        SDL_Rect rect = { static_cast<int>(bullet.x), static_cast<int>(bullet.y), 8, 16 };
-        SDL_RenderFillRect(renderer, &rect);
+    for (auto& bullet : bullets) {
+        bullet.bulletrect = { static_cast<int>(bullet.x), static_cast<int>(bullet.y), 8, 16 };
+        SDL_RenderFillRect(renderer, &bullet.bulletrect);
     }
 }
 
@@ -131,6 +133,7 @@ int main(int argc, char* argv[]) {
 
     struct GameObject {
       SDL_Rect destrect;
+      bool active = true;
 
       GameObject() {
         destrect.x = 150;
@@ -312,13 +315,43 @@ int main(int argc, char* argv[]) {
 
         SDL_RenderCopy(renderer, playerTexture, NULL, &PLAYER);
 
+
+
+        // Render Enemies
         for (const auto& instance : instances) {
           SDL_RenderCopy(renderer, imageTexture, NULL, &instance.destrect);
+        
         }
+
+
+        // STEP 1: Detect collisions and flag entities as inactive
+        for (auto& bullet : bullets) {
+          // If the bullet is already inactive, skip it
+          if (!bullet.active) continue; 
+
+          for (auto& instance : instances) {
+            // If the enemy instance is already inactive, skip it
+            if (!instance.active) continue;
+
+            // Check the intersection
+            if (SDL_HasIntersection(&instance.destrect, &bullet.bulletrect)) {
+              bullet.active = false;   // Mark bullet as inactive
+              instance.active = false; // Mark enemy instance as inactive
+
+              break; // Stop checking this bullet; it already hit something
+            }
+          }
+        }
+
+        // Erase elements where active is false
+        std::erase_if(bullets, [](const Bullet& b) { return !b.active; });
+        std::erase_if(instances, [](const GameObject& i) { return !i.active; });
 
         renderBullets(renderer, bullets);
         updateBullets(bullets);
 
+
+        //Render all Fonts 
         SDL_RenderCopy(renderer, creditsTexture, NULL, &creditsrect);
         SDL_RenderCopy(renderer, CREDITSTexture, NULL, &CREDITSrect);
         SDL_RenderCopy(renderer, scoreTexture, NULL, &scorerect);
