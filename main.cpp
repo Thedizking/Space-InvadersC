@@ -11,6 +11,7 @@ const int SCREEN_HEIGHT = 900;
 
 int CREDITS = 00;
 int SCORE = 0000;
+int HISCORE = 0000;
 
 int main(int argc, char* argv[]) {
     // 1. Initialize SDL Video Subsystem
@@ -97,6 +98,14 @@ int main(int argc, char* argv[]) {
     SDL_Surface*  scoreSurface = TTF_RenderText_Blended(font, "SCORE", textColor);
     SDL_Texture* scoreTexture = SDL_CreateTextureFromSurface(renderer, scoreSurface);
 
+    SDL_Surface*  SCORESurface = TTF_RenderText_Blended(font, std::to_string(SCORE).c_str(), textColor);
+    SDL_Texture* SCORETexture = SDL_CreateTextureFromSurface(renderer, SCORESurface);
+
+    SDL_Surface*  hiscoreSurface = TTF_RenderText_Blended(font, "HIGH SCORE", textColor);
+    SDL_Texture* hiscoreTexture = SDL_CreateTextureFromSurface(renderer, hiscoreSurface);
+
+    SDL_Surface*  HISCORESurface = TTF_RenderText_Blended(font, std::to_string(HISCORE).c_str(), textColor);
+    SDL_Texture* HISCORETexture = SDL_CreateTextureFromSurface(renderer, HISCORESurface);
 
     // Rectangles to place fonts need to change hardcoded values for variables.
     SDL_Rect creditsrect;
@@ -126,22 +135,35 @@ int main(int argc, char* argv[]) {
     scorerect.w = scoreSurface->w;
     scorerect.h = scoreSurface->h;
 
+    SDL_FreeSurface(scoreSurface);
 
 
 
     SDL_Rect SCORErect;
+    SCORErect.x = 200;
+    SCORErect.y = 50;
+    SCORErect.w = SCORESurface->w;
+    SCORErect.h = SCORESurface->h;
 
+    SDL_FreeSurface(SCORESurface);
 
 
 
     SDL_Rect hiscorerect;
+    hiscorerect.x = 900;
+    hiscorerect.y = 50;
+    hiscorerect.w = hiscoreSurface->w;
+    hiscorerect.h = hiscoreSurface->h;
 
-
-
-
+    SDL_FreeSurface(hiscoreSurface);
 
     SDL_Rect HISCORErect;
+    HISCORErect.x = 1200;
+    HISCORErect.y = 50;
+    HISCORErect.w = HISCORESurface->w;
+    HISCORErect.h = HISCORESurface->h;
 
+    SDL_FreeSurface(HISCORESurface);
 
 
 
@@ -174,6 +196,9 @@ int main(int argc, char* argv[]) {
         SDL_RenderCopy(renderer, creditsTexture, NULL, &creditsrect);
         SDL_RenderCopy(renderer, CREDITSTexture, NULL, &CREDITSrect);
         SDL_RenderCopy(renderer, scoreTexture, NULL, &scorerect);
+        SDL_RenderCopy(renderer, SCORETexture, NULL, &SCORErect);
+        SDL_RenderCopy(renderer, hiscoreTexture, NULL, &hiscorerect);
+        SDL_RenderCopy(renderer, HISCORETexture, NULL, &HISCORErect);
 
         // Update the screen display
         SDL_RenderPresent(renderer);
