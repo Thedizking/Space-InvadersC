@@ -4,6 +4,7 @@
 #include <SDL2/SDL_image.h>
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 // Screen dimensions
 const int SCREEN_WIDTH = 1400;
@@ -13,6 +14,11 @@ const int SCREEN_HEIGHT = 900;
 int CREDITS = 00;
 int SCORE = 0000;
 int HISCORE = 0000;
+const int SPEED = 10;
+const int playerW = 150;
+const int playerH = 50;
+int playerX = SCREEN_WIDTH / 2 - playerW / 2;
+int playerY = 770;
 
 int main(int argc, char* argv[]) {
     // 1. Initialize SDL Video Subsystem
@@ -77,6 +83,15 @@ int main(int argc, char* argv[]) {
     if (!imageTexture) {
         std::cout << "Failed to load image: " << IMG_GetError() << std::endl;
     }
+
+
+    SDL_Texture* playerTexture = IMG_LoadTexture(renderer, "Sprites/player.png");
+    if (!playerTexture) {
+        std::cout << "Failed to load image: " << IMG_GetError() << std::endl;
+    }
+
+    SDL_SetTextureBlendMode(playerTexture, SDL_BLENDMODE_BLEND);
+
 
     struct GameObject {
       SDL_Rect destrect;
@@ -215,6 +230,18 @@ int main(int argc, char* argv[]) {
             }
         }
 
+        playerX = std::clamp(playerX, 0, SCREEN_WIDTH - playerW); 
+
+        const Uint8* state = SDL_GetKeyboardState(NULL);
+
+        if (state[SDL_SCANCODE_LEFT] || state[SDL_SCANCODE_A]) {
+          playerX -= SPEED;
+        }
+
+        if (state[SDL_SCANCODE_RIGHT] || state[SDL_SCANCODE_D]) {
+          playerX += SPEED;
+        }
+
         // Color Screen background
         SDL_SetRenderDrawColor(renderer, 30, 50, 70, 255);
         SDL_RenderClear(renderer);
@@ -222,6 +249,10 @@ int main(int argc, char* argv[]) {
         // --- DRAW YOUR GRAPHICS HERE ---
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderDrawLine(renderer, 0, 825, 1400, 825);
+
+        SDL_Rect PLAYER {playerX, playerY, playerW, playerH};
+
+        SDL_RenderCopy(renderer, playerTexture, NULL, &PLAYER);
 
         for (const auto& instance : instances) {
           SDL_RenderCopy(renderer, imageTexture, NULL, &instance.destrect);
@@ -233,6 +264,7 @@ int main(int argc, char* argv[]) {
         SDL_RenderCopy(renderer, SCORETexture, NULL, &SCORErect);
         SDL_RenderCopy(renderer, hiscoreTexture, NULL, &hiscorerect);
         SDL_RenderCopy(renderer, HISCORETexture, NULL, &HISCORErect);
+        SDL_RenderCopy(renderer, playerTexture, NULL, &PLAYER);
 
         // Update the screen display
         SDL_RenderPresent(renderer);
