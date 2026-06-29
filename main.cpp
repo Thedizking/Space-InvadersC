@@ -134,6 +134,7 @@ int main(int argc, char* argv[]) {
     struct GameObject {
       SDL_Rect destrect;
       bool active = true;
+      int dx = 2;
 
       GameObject() {
         destrect.x = 150;
@@ -141,6 +142,13 @@ int main(int argc, char* argv[]) {
         destrect.w = 100;
         destrect.h = 100;
       }
+
+      void update() {
+        destrect.x += dx;
+
+
+      }
+
     };
 
 
@@ -318,9 +326,22 @@ int main(int argc, char* argv[]) {
 
 
         // Render Enemies
-        for (const auto& instance : instances) {
+        for (auto& instance : instances) {
           SDL_RenderCopy(renderer, imageTexture, NULL, &instance.destrect);
-        
+          instance.update();
+
+          if (instance.destrect.x >= SCREEN_WIDTH - 100) {
+            for (auto& obj: instances) {
+              obj.dx = -obj.dx;
+              obj.destrect.y += 5;
+            }
+          }
+          if (instance.destrect.x <= 100) {
+            for (auto& enm: instances) {
+              enm.dx = -enm.dx;
+              enm.destrect.y += 5;
+            }
+          }
         }
 
 
@@ -332,6 +353,7 @@ int main(int argc, char* argv[]) {
           for (auto& instance : instances) {
             // If the enemy instance is already inactive, skip it
             if (!instance.active) continue;
+            
 
             // Check the intersection
             if (SDL_HasIntersection(&instance.destrect, &bullet.bulletrect)) {
