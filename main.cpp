@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     struct GameObject {
       SDL_Rect destrect;
       bool active = true;
-      int dx = 2;
+      float dx = 2.0f;
 
       GameObject() {
         destrect.x = 150;
@@ -196,8 +196,6 @@ int main(int argc, char* argv[]) {
     SDL_Surface*  scoreSurface = TTF_RenderText_Blended(font, "SCORE", textColor);
     SDL_Texture* scoreTexture = SDL_CreateTextureFromSurface(renderer, scoreSurface);
 
-    SDL_Surface*  SCORESurface = TTF_RenderText_Blended(font, std::to_string(SCORE).c_str(), textColor);
-    SDL_Texture* SCORETexture = SDL_CreateTextureFromSurface(renderer, SCORESurface);
 
     SDL_Surface*  hiscoreSurface = TTF_RenderText_Blended(font, "HIGH SCORE", textColor);
     SDL_Texture* hiscoreTexture = SDL_CreateTextureFromSurface(renderer, hiscoreSurface);
@@ -237,13 +235,7 @@ int main(int argc, char* argv[]) {
 
 
 
-    SDL_Rect SCORErect;
-    SCORErect.x = 200;
-    SCORErect.y = 50;
-    SCORErect.w = SCORESurface->w;
-    SCORErect.h = SCORESurface->h;
 
-    SDL_FreeSurface(SCORESurface);
 
 
 
@@ -299,11 +291,11 @@ int main(int argc, char* argv[]) {
           Bullet newBullet;
           newBullet.x = playerX + playerW / 2;
           newBullet.y = playerY;
-          newBullet.dy = -15;
+          newBullet.dy = -10;
           newBullet.active = true;
 
           bullets.push_back(newBullet);
-          shotCooldown = 0.25f;
+          shotCooldown = 0.75f;
         }
 
         if (shotCooldown > 0) {
@@ -344,6 +336,15 @@ int main(int argc, char* argv[]) {
           }
         }
 
+        SDL_Surface*  SCORESurface = TTF_RenderText_Blended(font, std::to_string(SCORE).c_str(), textColor);
+        SDL_Texture* SCORETexture = SDL_CreateTextureFromSurface(renderer, SCORESurface);
+
+        SDL_Rect SCORErect;
+        SCORErect.x = 200;
+        SCORErect.y = 50;
+        SCORErect.w = SCORESurface->w;
+        SCORErect.h = SCORESurface->h;
+        SDL_FreeSurface(SCORESurface);
 
         // STEP 1: Detect collisions and flag entities as inactive
         for (auto& bullet : bullets) {
@@ -357,6 +358,7 @@ int main(int argc, char* argv[]) {
 
             // Check the intersection
             if (SDL_HasIntersection(&instance.destrect, &bullet.bulletrect)) {
+              SCORE += 10;
               bullet.active = false;   // Mark bullet as inactive
               instance.active = false; // Mark enemy instance as inactive
 
