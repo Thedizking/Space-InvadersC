@@ -31,7 +31,28 @@ struct Bullet {
   }
 };
 
+struct Barrier {
+  int x1, y1, x2, y2;
+  bool active = true;
+
+  Barrier() {
+    x1 = 100;
+    y1 = 720;
+    x2 = 100;
+    y2 = 750;
+  }
+
+  void breatTop() {
+    y1 -= 15;
+  }
+
+  void breakBot() {
+    y2 += 15;
+  }
+};
+
 std::vector<Bullet> bullets;
+std::vector<Barrier> barriers;
 
 void updateBullets(std::vector<Bullet>& bullets) {
     for (auto it = bullets.begin(); it != bullets.end(); ) {
@@ -47,6 +68,33 @@ void updateBullets(std::vector<Bullet>& bullets) {
     }
 }
 
+void renderBarriers(SDL_Renderer* renderer, std::vector<Barrier> barriers) {
+  SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+  Barrier bar;
+  for (int i = 0; i < 300; i++) {
+    SDL_RenderDrawLine(renderer, bar.x1, bar.y1, bar.x2, bar.y2);
+    bar.x1++;
+    bar.x2++;
+  }
+
+  bar.x1 += 150;
+  bar.x2 += 150;
+
+  for (int i = 0; i < 300; i++) {
+    SDL_RenderDrawLine(renderer, bar.x1, bar.y1, bar.x2, bar.y2);
+    bar.x1++;
+    bar.x2++;
+  }
+
+  bar.x1 += 150;
+  bar.x2 += 150;
+
+  for (int i = 0; i < 300; i++) {
+    SDL_RenderDrawLine(renderer, bar.x1, bar.y1, bar.x2, bar.y2);
+    bar.x1++;
+    bar.x2++;
+  }
+}
 
 void renderBullets(SDL_Renderer* renderer, std::vector<Bullet>& bullets) {
     SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // Yellow color
@@ -291,7 +339,7 @@ int main(int argc, char* argv[]) {
           Bullet newBullet;
           newBullet.x = playerX + playerW / 2;
           newBullet.y = playerY;
-          newBullet.dy = -10;
+          newBullet.dy = -5;
           newBullet.active = true;
 
           bullets.push_back(newBullet);
@@ -322,13 +370,13 @@ int main(int argc, char* argv[]) {
           SDL_RenderCopy(renderer, imageTexture, NULL, &instance.destrect);
           instance.update();
 
-          if (instance.destrect.x >= SCREEN_WIDTH - 100) {
+          if (instance.destrect.x >= SCREEN_WIDTH - 95) {
             for (auto& obj: instances) {
               obj.dx = -obj.dx;
               obj.destrect.y += 5;
             }
           }
-          if (instance.destrect.x <= 100) {
+          if (instance.destrect.x <= -10) {
             for (auto& enm: instances) {
               enm.dx = -enm.dx;
               enm.destrect.y += 5;
@@ -373,6 +421,8 @@ int main(int argc, char* argv[]) {
 
         renderBullets(renderer, bullets);
         updateBullets(bullets);
+
+        renderBarriers(renderer, barriers);
 
 
         //Render all Fonts 
