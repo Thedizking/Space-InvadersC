@@ -68,34 +68,17 @@ void updateBullets(std::vector<Bullet>& bullets) {
     }
 }
 
+
+
+
 void renderBarriers(SDL_Renderer* renderer, std::vector<Barrier> barriers) {
   SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-  Barrier bar;
-  for (int i = 0; i < 300; i++) {
-    SDL_RenderDrawLine(renderer, bar.x1, bar.y1, bar.x2, bar.y2);
-    bar.x1++;
-    bar.x2++;
-  }
-
-  bar.x1 += 150;
-  bar.x2 += 150;
-
-  for (int i = 0; i < 300; i++) {
-    SDL_RenderDrawLine(renderer, bar.x1, bar.y1, bar.x2, bar.y2);
-    bar.x1++;
-    bar.x2++;
-  }
-
-  bar.x1 += 150;
-  bar.x2 += 150;
-
-  for (int i = 0; i < 300; i++) {
-    SDL_RenderDrawLine(renderer, bar.x1, bar.y1, bar.x2, bar.y2);
-    bar.x1++;
-    bar.x2++;
+  for (auto& barrier : barriers) {
+    if (barrier.active) {
+      SDL_RenderDrawLine(renderer, barrier.x1, barrier.y1, barrier.x2, barrier.y2);
+    }
   }
 }
-
 void renderBullets(SDL_Renderer* renderer, std::vector<Bullet>& bullets) {
     SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // Yellow color
     
@@ -309,6 +292,22 @@ int main(int argc, char* argv[]) {
     bool isRunning = true;
     SDL_Event event;
 
+
+
+    // Initialize barriers vector matching render layout
+    for (int b = 0; b < 3; b++) {
+      int startX = 100 + (b * 450); // Spaces out 3 blocks
+      for (int i = 0; i < 300; i++) {
+        Barrier bar;
+        bar.x1 = startX + i;
+        bar.y1 = 720;
+        bar.x2 = startX + i;
+        bar.y2 = 750;
+        bar.active = true;
+        barriers.push_back(bar);
+      }
+    }
+
     // 5. Main Game Loop
     while (isRunning) {
         // Handle events (input, closing window, etc.)
@@ -394,10 +393,43 @@ int main(int argc, char* argv[]) {
         SCORErect.h = SCORESurface->h;
         SDL_FreeSurface(SCORESurface);
 
+
+        renderBarriers(renderer, barriers);
+
+
+
+        renderBullets(renderer, bullets);
+        updateBullets(bullets);
+
         // STEP 1: Detect collisions and flag entities as inactive
         for (auto& bullet : bullets) {
           // If the bullet is already inactive, skip it
           if (!bullet.active) continue; 
+
+            for (auto& barrier : barriers) {
+              if (!barrier.active) continue;
+
+              int x1 = barrier.x1;
+              int y1 = barrier.y1;
+              int x2 = barrier.x2;
+              int y2 = barrier.y2;
+
+              if (SDL_IntersectRectAndLine(&bullet.bulletrect, &x1, &y1, &x2, &y2)) {
+                bullet.active = false;
+              
+                barrier.active = false;
+
+
+                // This would work if we spaced out the lines or made the lines thicker
+                /*
+                barrier.y2 -= 15;
+                if (barrier.y2 - barrier.y1 <= 0) {
+                  barrier.active = false;
+                }
+                */
+                break;
+              }
+            }
 
           for (auto& instance : instances) {
             // If the enemy instance is already inactive, skip it
@@ -418,11 +450,7 @@ int main(int argc, char* argv[]) {
         // Erase elements where active is false
         std::erase_if(bullets, [](const Bullet& b) { return !b.active; });
         std::erase_if(instances, [](const GameObject& i) { return !i.active; });
-
-        renderBullets(renderer, bullets);
-        updateBullets(bullets);
-
-        renderBarriers(renderer, barriers);
+        std::erase_if(barriers, [](const Barrier& B) { return !B.active; });
 
 
         //Render all Fonts 
@@ -430,6 +458,7 @@ int main(int argc, char* argv[]) {
         SDL_RenderCopy(renderer, CREDITSTexture, NULL, &CREDITSrect);
         SDL_RenderCopy(renderer, scoreTexture, NULL, &scorerect);
         SDL_RenderCopy(renderer, SCORETexture, NULL, &SCORErect);
+        SDL_DestroyTexture(SCORETexture);
         SDL_RenderCopy(renderer, hiscoreTexture, NULL, &hiscorerect);
         SDL_RenderCopy(renderer, HISCORETexture, NULL, &HISCORErect);
         SDL_RenderCopy(renderer, playerTexture, NULL, &PLAYER);
