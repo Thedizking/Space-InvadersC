@@ -478,6 +478,33 @@ int main(int argc, char* argv[]) {
         renderBullets(renderer, enemyBullets);
         updateBullets(enemyBullets);
 
+        for (auto& enemyBullet : enemyBullets) {
+          if (!enemyBullet.active) continue;
+
+            for (auto& barrier : barriers) {
+              if (!barrier.active) continue;
+                
+              int x1 = barrier.x1;
+              int y1 = barrier.y1;
+              int x2 = barrier.x2;
+              int y2 = barrier.y2;
+
+
+              if (SDL_IntersectRectAndLine(&enemyBullet.bulletrect, &x1, &y1, &x2, &y2)) {
+                enemyBullet.active = false;
+              
+                barrier.active = false;
+
+
+
+              }
+            }
+        }
+
+
+        std::erase_if(enemyBullets, [](const Bullet& eb) { return !eb.active; });
+        std::erase_if(barriers, [](const Barrier& B) { return !B.active; });
+        
         // STEP 1: Detect collisions and flag entities as inactive
         for (auto& bullet : bullets) {
           // If the bullet is already inactive, skip it
