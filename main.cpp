@@ -20,6 +20,10 @@ const int playerW = 150;
 const int playerH = 50;
 int playerX = SCREEN_WIDTH / 2 - playerW / 2;
 int playerY = 770;
+float enemyShotCooldown = 3.0f;
+Uint32 lastTime = SDL_GetTicks();
+float deltaTime = 0.0f;
+
 
 struct Bullet {
   SDL_Rect bulletrect;
@@ -51,8 +55,9 @@ struct Barrier {
   }
 };
 
-std::vector<Bullet> bullets;
 std::vector<Barrier> barriers;
+std::vector<Bullet> bullets;
+std::vector<Bullet> enemyBullets;
 
 void updateBullets(std::vector<Bullet>& bullets) {
     for (auto it = bullets.begin(); it != bullets.end(); ) {
@@ -62,6 +67,20 @@ void updateBullets(std::vector<Bullet>& bullets) {
         // Remove bullet if it goes off the top of the screen
         if (it->y < 0) {
             it = bullets.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+void updateEnemyBullets(std::vector<Bullet>& enemyBullets) {
+    for (auto it = enemyBullets.begin(); it != enemyBullets.end(); ) {
+        it->update();
+        
+
+        // Remove bullet if it goes off the top of the screen
+        if (it->y < 0) {
+            it = enemyBullets.erase(it);
         } else {
             ++it;
         }
@@ -83,10 +102,76 @@ void renderBullets(SDL_Renderer* renderer, std::vector<Bullet>& bullets) {
     SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // Yellow color
     
     for (auto& bullet : bullets) {
-        bullet.bulletrect = { static_cast<int>(bullet.x), static_cast<int>(bullet.y), 8, 16 };
+        bullet.bulletrect = { static_cast<int>(bullet.x), static_cast<int>(bullet.y), 1, 24 };
         SDL_RenderFillRect(renderer, &bullet.bulletrect);
     }
 }
+
+void renderEnemyBullets(SDL_Renderer* renderer, std::vector<Bullet>& enemyBullets) {
+    SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // Yellow color
+    
+    for (auto& enemyBullet : enemyBullets) {
+        enemyBullet.bulletrect = { static_cast<int>(enemyBullet.x), static_cast<int>(enemyBullet.y), 1, 24 };
+        SDL_RenderFillRect(renderer, &enemyBullet.bulletrect);
+    }
+}
+
+struct GameObject {
+  SDL_Rect destrect;
+  bool active = true;
+  float dx = 2.0f;
+
+  GameObject() {
+    destrect.x = 150;
+    destrect.y = 125;
+    destrect.w = 100;
+    destrect.h = 100;
+  }
+
+  void update() {
+    destrect.x += dx;
+
+
+  }
+
+};
+
+
+
+
+
+std::vector<GameObject> instances;
+
+
+
+void shootEnemyBullets(std::vector<Bullet>& enemyBullets, float deltaTime) {
+  // Reduce a global cooldown tracker if you want to limit overall fire rate
+  if (enemyShotCooldown > 0.0f) {
+    enemyShotCooldown -= deltaTime;
+    return; 
+  }
+
+  // Only attempt to shoot if there are actually enemies alive
+  if (instances.empty()) return;
+
+  // Pick ONE random enemy from your vector to fire
+  int randomIndex = rand() % instances.size();
+  auto& shooter = instances[randomIndex];
+
+  if (shooter.active) {
+    Bullet newEnemyBullet;
+    newEnemyBullet.x = shooter.destrect.x + (shooter.destrect.w / 2) - 4;
+    newEnemyBullet.y = shooter.destrect.y + shooter.destrect.h;
+    newEnemyBullet.dy = 5;
+    newEnemyBullet.active = true;
+    newEnemyBullet.bulletrect = { newEnemyBullet.x, newEnemyBullet.y, 1, 16 };
+
+    enemyBullets.push_back(newEnemyBullet);
+
+    enemyShotCooldown = 3.0f; 
+  }
+}
+
 
 
 int main(int argc, char* argv[]) {
@@ -162,34 +247,9 @@ int main(int argc, char* argv[]) {
     SDL_SetTextureBlendMode(playerTexture, SDL_BLENDMODE_BLEND);
 
 
-    struct GameObject {
-      SDL_Rect destrect;
-      bool active = true;
-      float dx = 2.0f;
-
-      GameObject() {
-        destrect.x = 150;
-        destrect.y = 125;
-        destrect.w = 100;
-        destrect.h = 100;
-      }
-
-      void update() {
-        destrect.x += dx;
-
-
-      }
-
-    };
-
-
-
-
-
-    std::vector<GameObject> instances;
 
     GameObject obj;
-    for(int i = 0; i < 11; i++) {
+    for (int i = 0; i < 11; i++) {
       instances.push_back(obj);
       obj.destrect.x += 100;
     }
@@ -197,7 +257,7 @@ int main(int argc, char* argv[]) {
     obj.destrect.y += 100;
     obj.destrect.x = 125;
 
-    for(int i = 0; i < 11; i++) {
+    for (int i = 0; i < 11; i++) {
       instances.push_back(obj);
       obj.destrect.x += 100;
     }
@@ -205,7 +265,7 @@ int main(int argc, char* argv[]) {
     obj.destrect.y += 100;
     obj.destrect.x = 150;
 
-    for(int i = 0; i < 11; i++) {
+    for (int i = 0; i < 11; i++) {
       instances.push_back(obj);
       obj.destrect.x += 100;
     }
@@ -213,10 +273,16 @@ int main(int argc, char* argv[]) {
     obj.destrect.y += 100;
     obj.destrect.x = 125;
 
-    for(int i = 0; i < 11; i++) {
+    for (int i = 0; i < 11; i++) {
       instances.push_back(obj);
       obj.destrect.x += 100;
     }
+
+    
+
+
+    
+
     SDL_Color textColor = {255, 255, 255};
     SDL_Surface*  creditsSurface = TTF_RenderText_Blended(font, "CREDITS", textColor);
     SDL_Texture* creditsTexture = SDL_CreateTextureFromSurface(renderer, creditsSurface);
@@ -310,6 +376,13 @@ int main(int argc, char* argv[]) {
 
     // 5. Main Game Loop
     while (isRunning) {
+      Uint32 currentTime = SDL_GetTicks();
+      // Calculate seconds passed since the last frame (e.g., 0.016 for 60 FPS)
+      deltaTime = (currentTime - lastTime) / 1000.0f; 
+      lastTime = currentTime;
+
+
+
         // Handle events (input, closing window, etc.)
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
@@ -397,9 +470,13 @@ int main(int argc, char* argv[]) {
         renderBarriers(renderer, barriers);
 
 
-
         renderBullets(renderer, bullets);
         updateBullets(bullets);
+
+        shootEnemyBullets(enemyBullets, deltaTime);
+
+        renderBullets(renderer, enemyBullets);
+        updateBullets(enemyBullets);
 
         // STEP 1: Detect collisions and flag entities as inactive
         for (auto& bullet : bullets) {
