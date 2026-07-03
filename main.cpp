@@ -12,6 +12,7 @@ const int SCREEN_HEIGHT = 900;
 
 float shotCooldown = 0.0f;
 
+bool isAlive = true;
 int CREDITS = 00;
 int SCORE = 0000;
 int HISCORE = 0000;
@@ -424,7 +425,7 @@ int main(int argc, char* argv[]) {
 
 
         // Color Screen background
-        SDL_SetRenderDrawColor(renderer, 30, 50, 70, 255);
+        SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
         SDL_RenderClear(renderer);
 
         // --- DRAW YOUR GRAPHICS HERE ---
@@ -498,6 +499,12 @@ int main(int argc, char* argv[]) {
 
 
               }
+            }
+            if (SDL_HasIntersection(&enemyBullet.bulletrect, &PLAYER)) {
+              enemyBullet.active = false;
+              //isAlive = false;
+              SDL_Quit();
+
             }
         }
 
