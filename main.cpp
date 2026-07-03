@@ -531,9 +531,6 @@ int main(int argc, char* argv[]) {
 
               if (SDL_IntersectRectAndLine(&bullet.bulletrect, &x1, &y1, &x2, &y2)) {
                 bullet.active = false;
-              
-
-
                 barrier.y2 -= 10;
                 if (barrier.y2 - barrier.y1 <= 0) {
                   barrier.active = false;
