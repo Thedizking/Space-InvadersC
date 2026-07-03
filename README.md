@@ -1,2 +1,5 @@
 # Space-InvadersC
-Space Invaders In C++ using SDL2
+
+A simple Space Invaders clone using SDL2 and C++
+
+Currently Compiled for Linux 
