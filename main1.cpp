@@ -12,7 +12,6 @@ const int SCREEN_HEIGHT = 900;
 
 float shotCooldown = 0.0f;
 
-bool isAlive = true;
 int CREDITS = 00;
 int SCORE = 0000;
 int HISCORE = 0000;
@@ -156,6 +155,7 @@ void shootEnemyBullets(std::vector<Bullet>& enemyBullets, float deltaTime) {
   if (instances.empty()) return;
 
   // Pick ONE random enemy from your vector to fire
+  int randomIndex = rand() % instances.size();
   int randomIndex = rand() % instances.size();
   auto& shooter = instances[randomIndex];
 
@@ -415,7 +415,6 @@ int main(int argc, char* argv[]) {
           newBullet.dy = -5;
           newBullet.active = true;
 
-          bullets.push_back(newBullet);
           shotCooldown = 0.75f;
         }
 
@@ -494,21 +493,14 @@ int main(int argc, char* argv[]) {
               if (SDL_IntersectRectAndLine(&enemyBullet.bulletrect, &x1, &y1, &x2, &y2)) {
                 enemyBullet.active = false;
               
-                barrier.y1 += 10;
-                if (barrier.y2 - barrier.y1 <= 0) {
-                  barrier.active = false;
-                }
-                break;
+                barrier.active = false;
 
 
 
               }
             }
             if (SDL_HasIntersection(&enemyBullet.bulletrect, &PLAYER)) {
-              enemyBullet.active = false;
-              //isAlive = false;
-              SDL_Quit();
-
+             std::cout << "deltaTime"; 
             }
         }
 
@@ -532,12 +524,16 @@ int main(int argc, char* argv[]) {
               if (SDL_IntersectRectAndLine(&bullet.bulletrect, &x1, &y1, &x2, &y2)) {
                 bullet.active = false;
               
+                barrier.active = false;
 
 
-                barrier.y2 -= 10;
+                // This would work if we spaced out the lines or made the lines thicker
+                /*
+                barrier.y2 -= 15;
                 if (barrier.y2 - barrier.y1 <= 0) {
                   barrier.active = false;
                 }
+                */
                 break;
               }
             }
