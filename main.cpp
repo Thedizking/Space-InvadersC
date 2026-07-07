@@ -30,6 +30,8 @@ float enemyShotCooldown = 3.0f;
 Uint32 lastTime = SDL_GetTicks();
 float deltaTime = 0.0f;
 
+enum GameState {PLAYING, GAMEOVER};
+GameState currentState = PLAYING;
 
 struct Bullet {
   SDL_Rect bulletrect;
@@ -155,6 +157,7 @@ void placeEnemies(std::vector<GameObject>& instances) {
 
   GameObject obj;
 
+
   if (!instances.empty()) return;
 
   for (int i = 0; i < 11; i++) {
@@ -240,13 +243,36 @@ void shootEnemyBullets(std::vector<Bullet>& enemyBullets, float deltaTime) {
   }
 }
 
-void killPlayer() {
+void gameOver(SDL_Renderer* renderer, TTF_Font* font) {
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+  SDL_RenderClear(renderer);
+  SDL_Color textColor = {255, 255, 255};
+  SDL_Surface*  gameOverSurface = TTF_RenderText_Blended(font, "GAME OVER", textColor);
+  SDL_Texture* gameOverTexture = SDL_CreateTextureFromSurface(renderer, gameOverSurface);
+  SDL_Rect gameOverrect;
+  gameOverrect.x = SCREEN_WIDTH / 2 - gameOverSurface->w / 2;
+  gameOverrect.y = SCREEN_HEIGHT / 2 - gameOverSurface->h / 2;
+  gameOverrect.w = gameOverSurface->w;
+  gameOverrect.h = gameOverSurface->h;
+
+  SDL_FreeSurface(gameOverSurface);
+
+  SDL_RenderCopy(renderer, gameOverTexture, NULL, &gameOverrect);
+
+  SDL_RenderPresent(renderer);
+}
+
+void killPlayer(SDL_Renderer* renderer) {
   lives -= 1;
   placeEnemies(instances);
   std::this_thread::sleep_for(2s);
   playerX = SCREEN_WIDTH / 2 - playerW / 2;
-
+  
+  if (lives < 0) {
+    currentState = GAMEOVER;
+  }
 }
+
 
 
 int main(int argc, char* argv[]) {
@@ -255,6 +281,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
         return 1;
     }
+
 
     // Open the audio device with common settings
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
@@ -336,6 +363,8 @@ int main(int argc, char* argv[]) {
     SDL_Surface*  scoreSurface = TTF_RenderText_Blended(font, "SCORE", textColor);
     SDL_Texture* scoreTexture = SDL_CreateTextureFromSurface(renderer, scoreSurface);
 
+    SDL_Surface* livesSurface = TTF_RenderText_Blended(font, "LIVES", textColor);
+    SDL_Texture* livesTexture = SDL_CreateTextureFromSurface(renderer, livesSurface);
 
     SDL_Surface*  hiscoreSurface = TTF_RenderText_Blended(font, "HIGH SCORE", textColor);
     SDL_Texture* hiscoreTexture = SDL_CreateTextureFromSurface(renderer, hiscoreSurface);
@@ -361,9 +390,12 @@ int main(int argc, char* argv[]) {
     SDL_FreeSurface(CREDITSSurface);
 
     SDL_Rect livesrect;
+    livesrect.x = 50;
+    livesrect.y = 850;
+    livesrect.w = livesSurface->w;
+    livesrect.h = livesSurface->h;
 
-
-
+    SDL_FreeSurface(livesSurface);
 
     SDL_Rect scorerect;
     scorerect.x = 50;
@@ -425,6 +457,151 @@ int main(int argc, char* argv[]) {
       lastTime = currentTime;
 
 
+      if (currentState == PLAYING) {
+        // --- DRAW YOUR GRAPHICS HERE ---
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_RenderDrawLine(renderer, 0, 825, 1400, 825);
+
+        SDL_Rect PLAYER {playerX, playerY, playerW, playerH};
+
+        SDL_RenderCopy(renderer, playerTexture, NULL, &PLAYER);
+
+
+
+
+        SDL_Surface*  SCORESurface = TTF_RenderText_Blended(font, std::to_string(SCORE).c_str(), textColor);
+        SDL_Texture* SCORETexture = SDL_CreateTextureFromSurface(renderer, SCORESurface);
+
+        SDL_Rect SCORErect;
+        SCORErect.x = 200;
+        SCORErect.y = 50;
+        SCORErect.w = SCORESurface->w;
+        SCORErect.h = SCORESurface->h;
+        SDL_FreeSurface(SCORESurface);
+
+
+        SDL_Surface*  LIVESSurface = TTF_RenderText_Blended(font, std::to_string(lives).c_str(), textColor);
+        SDL_Texture* LIVESTexture = SDL_CreateTextureFromSurface(renderer, LIVESSurface);
+
+        SDL_Rect LIVESrect;
+        LIVESrect.x = 200;
+        LIVESrect.y = 850;
+        LIVESrect.w = LIVESSurface->w;
+        LIVESrect.h = LIVESSurface->h;
+        SDL_FreeSurface(LIVESSurface);
+
+        renderBarriers(renderer, barriers);
+        moveEnemies(renderer, imageTexture);
+
+
+        renderBullets(renderer, bullets);
+        updateBullets(bullets);
+
+        shootEnemyBullets(enemyBullets, deltaTime);
+
+        renderBullets(renderer, enemyBullets);
+        updateBullets(enemyBullets);
+
+        for (auto& enemyBullet : enemyBullets) {
+          if (!enemyBullet.active) continue;
+
+          for (auto& barrier : barriers) {
+            if (!barrier.active) continue;
+
+            int x1 = barrier.x1;
+            int y1 = barrier.y1;
+            int x2 = barrier.x2;
+            int y2 = barrier.y2;
+
+
+            if (SDL_IntersectRectAndLine(&enemyBullet.bulletrect, &x1, &y1, &x2, &y2)) {
+              enemyBullet.active = false;
+
+              barrier.y1 += 10;
+              if (barrier.y2 - barrier.y1 <= 0) {
+                barrier.active = false;
+              }
+              break;
+
+
+
+            }
+          }
+          if (SDL_HasIntersection(&enemyBullet.bulletrect, &PLAYER)) {
+            enemyBullet.active = false;
+            killPlayer(renderer);
+
+          }
+        }
+
+
+        std::erase_if(enemyBullets, [](const Bullet& eb) { return !eb.active; });
+        std::erase_if(barriers, [](const Barrier& B) { return !B.active; });
+
+        // STEP 1: Detect collisions and flag entities as inactive
+        for (auto& bullet : bullets) {
+          // If the bullet is already inactive, skip it
+          if (!bullet.active) continue; 
+
+          for (auto& barrier : barriers) {
+            if (!barrier.active) continue;
+
+            int x1 = barrier.x1;
+            int y1 = barrier.y1;
+            int x2 = barrier.x2;
+            int y2 = barrier.y2;
+
+            if (SDL_IntersectRectAndLine(&bullet.bulletrect, &x1, &y1, &x2, &y2)) {
+              bullet.active = false;
+              barrier.y2 -= 10;
+              if (barrier.y2 - barrier.y1 <= 0) {
+                barrier.active = false;
+              }
+              break;
+            }
+          }
+
+          for (auto& instance : instances) {
+            // If the enemy instance is already inactive, skip it
+            if (!instance.active) continue;
+
+
+            // Check the intersection
+            if (SDL_HasIntersection(&instance.destrect, &bullet.bulletrect)) {
+              SCORE += 10;
+              bullet.active = false;   // Mark bullet as inactive
+              instance.active = false; // Mark enemy instance as inactive
+
+              break; // Stop checking this bullet; it already hit something
+            }
+          }
+        }
+
+        // Erase elements where active is false
+        std::erase_if(bullets, [](const Bullet& b) { return !b.active; });
+        std::erase_if(instances, [](const GameObject& i) { return !i.active; });
+        std::erase_if(barriers, [](const Barrier& B) { return !B.active; });
+
+
+        //Render all Fonts 
+        SDL_RenderCopy(renderer, creditsTexture, NULL, &creditsrect);
+        SDL_RenderCopy(renderer, CREDITSTexture, NULL, &CREDITSrect);
+        SDL_RenderCopy(renderer, scoreTexture, NULL, &scorerect);
+        SDL_RenderCopy(renderer, SCORETexture, NULL, &SCORErect);
+        SDL_DestroyTexture(SCORETexture);
+        SDL_RenderCopy(renderer, LIVESTexture, NULL, &LIVESrect);
+        SDL_RenderCopy(renderer, hiscoreTexture, NULL, &hiscorerect);
+        SDL_RenderCopy(renderer, HISCORETexture, NULL, &HISCORErect);
+        SDL_RenderCopy(renderer, playerTexture, NULL, &PLAYER);
+        SDL_RenderCopy(renderer, livesTexture, NULL, &livesrect);
+
+        // Update the screen display
+        SDL_RenderPresent(renderer);
+        
+      } else if (currentState == GAMEOVER) {
+          gameOver(renderer, font);
+      }
+
 
         // Handle events (input, closing window, etc.)
         while (SDL_PollEvent(&event)) {
@@ -470,133 +647,6 @@ int main(int argc, char* argv[]) {
         SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
         SDL_RenderClear(renderer);
 
-        // --- DRAW YOUR GRAPHICS HERE ---
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        SDL_RenderDrawLine(renderer, 0, 825, 1400, 825);
-
-        SDL_Rect PLAYER {playerX, playerY, playerW, playerH};
-
-        SDL_RenderCopy(renderer, playerTexture, NULL, &PLAYER);
-
-
-
-
-        SDL_Surface*  SCORESurface = TTF_RenderText_Blended(font, std::to_string(SCORE).c_str(), textColor);
-        SDL_Texture* SCORETexture = SDL_CreateTextureFromSurface(renderer, SCORESurface);
-
-        SDL_Rect SCORErect;
-        SCORErect.x = 200;
-        SCORErect.y = 50;
-        SCORErect.w = SCORESurface->w;
-        SCORErect.h = SCORESurface->h;
-        SDL_FreeSurface(SCORESurface);
-
-
-        renderBarriers(renderer, barriers);
-        moveEnemies(renderer, imageTexture);
-
-
-        renderBullets(renderer, bullets);
-        updateBullets(bullets);
-
-        shootEnemyBullets(enemyBullets, deltaTime);
-
-        renderBullets(renderer, enemyBullets);
-        updateBullets(enemyBullets);
-
-        for (auto& enemyBullet : enemyBullets) {
-          if (!enemyBullet.active) continue;
-
-            for (auto& barrier : barriers) {
-              if (!barrier.active) continue;
-                
-              int x1 = barrier.x1;
-              int y1 = barrier.y1;
-              int x2 = barrier.x2;
-              int y2 = barrier.y2;
-
-
-              if (SDL_IntersectRectAndLine(&enemyBullet.bulletrect, &x1, &y1, &x2, &y2)) {
-                enemyBullet.active = false;
-              
-                barrier.y1 += 10;
-                if (barrier.y2 - barrier.y1 <= 0) {
-                  barrier.active = false;
-                }
-                break;
-
-
-
-              }
-            }
-            if (SDL_HasIntersection(&enemyBullet.bulletrect, &PLAYER)) {
-              enemyBullet.active = false;
-              killPlayer();
-
-            }
-        }
-
-
-        std::erase_if(enemyBullets, [](const Bullet& eb) { return !eb.active; });
-        std::erase_if(barriers, [](const Barrier& B) { return !B.active; });
-        
-        // STEP 1: Detect collisions and flag entities as inactive
-        for (auto& bullet : bullets) {
-          // If the bullet is already inactive, skip it
-          if (!bullet.active) continue; 
-
-            for (auto& barrier : barriers) {
-              if (!barrier.active) continue;
-
-              int x1 = barrier.x1;
-              int y1 = barrier.y1;
-              int x2 = barrier.x2;
-              int y2 = barrier.y2;
-
-              if (SDL_IntersectRectAndLine(&bullet.bulletrect, &x1, &y1, &x2, &y2)) {
-                bullet.active = false;
-                barrier.y2 -= 10;
-                if (barrier.y2 - barrier.y1 <= 0) {
-                  barrier.active = false;
-                }
-                break;
-              }
-            }
-
-          for (auto& instance : instances) {
-            // If the enemy instance is already inactive, skip it
-            if (!instance.active) continue;
-            
-
-            // Check the intersection
-            if (SDL_HasIntersection(&instance.destrect, &bullet.bulletrect)) {
-              SCORE += 10;
-              bullet.active = false;   // Mark bullet as inactive
-              instance.active = false; // Mark enemy instance as inactive
-
-              break; // Stop checking this bullet; it already hit something
-            }
-          }
-        }
-
-        // Erase elements where active is false
-        std::erase_if(bullets, [](const Bullet& b) { return !b.active; });
-        std::erase_if(instances, [](const GameObject& i) { return !i.active; });
-        std::erase_if(barriers, [](const Barrier& B) { return !B.active; });
-
-
-        //Render all Fonts 
-        SDL_RenderCopy(renderer, creditsTexture, NULL, &creditsrect);
-        SDL_RenderCopy(renderer, CREDITSTexture, NULL, &CREDITSrect);
-        SDL_RenderCopy(renderer, scoreTexture, NULL, &scorerect);
-        SDL_RenderCopy(renderer, SCORETexture, NULL, &SCORErect);
-        SDL_DestroyTexture(SCORETexture);
-        SDL_RenderCopy(renderer, hiscoreTexture, NULL, &hiscorerect);
-        SDL_RenderCopy(renderer, HISCORETexture, NULL, &HISCORErect);
-        SDL_RenderCopy(renderer, playerTexture, NULL, &PLAYER);
-
-        // Update the screen display
-        SDL_RenderPresent(renderer);
     }
 
     // 6. Cleanup and Shutdown Resources
