@@ -5,6 +5,9 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <thread>
+#include <chrono>
+using namespace std::chrono_literals;
 
 // Screen dimensions
 const int SCREEN_WIDTH = 1400;
@@ -12,6 +15,8 @@ const int SCREEN_HEIGHT = 900;
 
 float shotCooldown = 0.0f;
 
+int lives = 3;
+int level = 1;
 bool isAlive = true;
 int CREDITS = 00;
 int SCORE = 0000;
@@ -59,6 +64,8 @@ struct Barrier {
 std::vector<Barrier> barriers;
 std::vector<Bullet> bullets;
 std::vector<Bullet> enemyBullets;
+
+
 
 void updateBullets(std::vector<Bullet>& bullets) {
     for (auto it = bullets.begin(); it != bullets.end(); ) {
@@ -144,6 +151,66 @@ struct GameObject {
 std::vector<GameObject> instances;
 
 
+void placeEnemies(std::vector<GameObject>& instances) {
+
+  GameObject obj;
+
+  if (!instances.empty()) return;
+
+  for (int i = 0; i < 11; i++) {
+    instances.push_back(obj);
+    obj.destrect.x += 100;
+  }
+
+  obj.destrect.y += 100;
+  obj.destrect.x = 125;
+
+  for (int i = 0; i < 11; i++) {
+    instances.push_back(obj);
+    obj.destrect.x += 100;
+  }
+
+  obj.destrect.y += 100;
+  obj.destrect.x = 150;
+
+  for (int i = 0; i < 11; i++) {
+    instances.push_back(obj);
+    obj.destrect.x += 100;
+  }
+
+  obj.destrect.y += 100;
+  obj.destrect.x = 125;
+
+  for (int i = 0; i < 11; i++) {
+    instances.push_back(obj);
+    obj.destrect.x += 100;
+  }
+
+
+}
+
+void moveEnemies(SDL_Renderer* renderer, SDL_Texture* imageTexture) {
+
+  // Render Enemies
+  for (auto& instance : instances) {
+    SDL_RenderCopy(renderer, imageTexture, NULL, &instance.destrect);
+    instance.update();
+
+    if (instance.destrect.x >= SCREEN_WIDTH - 95) {
+      for (auto& obj: instances) {
+        obj.dx = -obj.dx;
+        obj.destrect.y += 5;
+      }
+    }
+    if (instance.destrect.x <= -10) {
+      for (auto& enm: instances) {
+        enm.dx = -enm.dx;
+        enm.destrect.y += 5;
+      }
+    }
+  }
+}
+
 
 void shootEnemyBullets(std::vector<Bullet>& enemyBullets, float deltaTime) {
   // Reduce a global cooldown tracker if you want to limit overall fire rate
@@ -173,6 +240,13 @@ void shootEnemyBullets(std::vector<Bullet>& enemyBullets, float deltaTime) {
   }
 }
 
+void killPlayer() {
+  lives -= 1;
+  placeEnemies(instances);
+  std::this_thread::sleep_for(2s);
+  playerX = SCREEN_WIDTH / 2 - playerW / 2;
+
+}
 
 
 int main(int argc, char* argv[]) {
@@ -248,39 +322,7 @@ int main(int argc, char* argv[]) {
     SDL_SetTextureBlendMode(playerTexture, SDL_BLENDMODE_BLEND);
 
 
-
-    GameObject obj;
-    for (int i = 0; i < 11; i++) {
-      instances.push_back(obj);
-      obj.destrect.x += 100;
-    }
-  
-    obj.destrect.y += 100;
-    obj.destrect.x = 125;
-
-    for (int i = 0; i < 11; i++) {
-      instances.push_back(obj);
-      obj.destrect.x += 100;
-    }
-
-    obj.destrect.y += 100;
-    obj.destrect.x = 150;
-
-    for (int i = 0; i < 11; i++) {
-      instances.push_back(obj);
-      obj.destrect.x += 100;
-    }
-
-    obj.destrect.y += 100;
-    obj.destrect.x = 125;
-
-    for (int i = 0; i < 11; i++) {
-      instances.push_back(obj);
-      obj.destrect.x += 100;
-    }
-
-    
-
+    placeEnemies(instances);
 
     
 
@@ -438,24 +480,6 @@ int main(int argc, char* argv[]) {
 
 
 
-        // Render Enemies
-        for (auto& instance : instances) {
-          SDL_RenderCopy(renderer, imageTexture, NULL, &instance.destrect);
-          instance.update();
-
-          if (instance.destrect.x >= SCREEN_WIDTH - 95) {
-            for (auto& obj: instances) {
-              obj.dx = -obj.dx;
-              obj.destrect.y += 5;
-            }
-          }
-          if (instance.destrect.x <= -10) {
-            for (auto& enm: instances) {
-              enm.dx = -enm.dx;
-              enm.destrect.y += 5;
-            }
-          }
-        }
 
         SDL_Surface*  SCORESurface = TTF_RenderText_Blended(font, std::to_string(SCORE).c_str(), textColor);
         SDL_Texture* SCORETexture = SDL_CreateTextureFromSurface(renderer, SCORESurface);
@@ -469,6 +493,7 @@ int main(int argc, char* argv[]) {
 
 
         renderBarriers(renderer, barriers);
+        moveEnemies(renderer, imageTexture);
 
 
         renderBullets(renderer, bullets);
@@ -506,8 +531,7 @@ int main(int argc, char* argv[]) {
             }
             if (SDL_HasIntersection(&enemyBullet.bulletrect, &PLAYER)) {
               enemyBullet.active = false;
-              //isAlive = false;
-              SDL_Quit();
+              killPlayer();
 
             }
         }
