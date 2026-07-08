@@ -264,7 +264,7 @@ void gameOver(SDL_Renderer* renderer, TTF_Font* font) {
 void killPlayer(SDL_Renderer* renderer) {
   lives -= 1;
   placeEnemies(instances);
-  std::this_thread::sleep_for(2s);
+  //std::this_thread::sleep_for(2s);
   playerX = SCREEN_WIDTH / 2 - playerW / 2;
   
   if (lives < 0) {
@@ -458,6 +458,11 @@ int main(int argc, char* argv[]) {
 
 
       if (currentState == PLAYING) {
+
+        // Color Screen background
+        SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
+        SDL_RenderClear(renderer);
+
         // --- DRAW YOUR GRAPHICS HERE ---
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderDrawLine(renderer, 0, 825, 1400, 825);
@@ -642,10 +647,6 @@ int main(int argc, char* argv[]) {
           shotCooldown -= 0.016f;  // Minus 16ms per frame assuming 60FPS this equals a quarter second.
         }
 
-
-        // Color Screen background
-        SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
-        SDL_RenderClear(renderer);
 
     }
 
