@@ -27,7 +27,6 @@ const int playerH = 50;
 int playerX = SCREEN_WIDTH / 2 - playerW / 2;
 int playerY = 770;
 float enemyShotCooldown = 3.0f;
-Uint32 lastTime = SDL_GetTicks();
 float deltaTime = 0.0f;
 
 enum GameState {PLAYING, GAMEOVER};
@@ -282,6 +281,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    Uint32 lastTime = SDL_GetTicks();
 
     // Open the audio device with common settings
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
