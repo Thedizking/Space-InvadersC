@@ -27,6 +27,6 @@ A simple Space Invaders clone using C++ and SDL2
 ## Linux Compilation 
 
 ```
-g++ main.cpp -o SpaceInv -lSDL2 -lSDL2_ttf -lSDL2_image -lSDL2_mixer 
+g++ main.cpp -o SpaceInv -lSDL2 -lSDL2_ttf -lSDL2_image -lSDL2_mixer -std=c++23
 ```
 
