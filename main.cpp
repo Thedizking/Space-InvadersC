@@ -351,7 +351,6 @@ int main(int argc, char* argv[]) {
 
     placeEnemies(instances);
 
-    
 
     SDL_Color textColor = {255, 255, 255};
     SDL_Surface*  creditsSurface = TTF_RenderText_Blended(font, "CREDITS", textColor);
@@ -405,12 +404,6 @@ int main(int argc, char* argv[]) {
 
     SDL_FreeSurface(scoreSurface);
 
-
-
-
-
-
-
     SDL_Rect hiscorerect;
     hiscorerect.x = 900;
     hiscorerect.y = 50;
@@ -426,7 +419,6 @@ int main(int argc, char* argv[]) {
     HISCORErect.h = HISCORESurface->h;
 
     SDL_FreeSurface(HISCORESurface);
-
 
 
     // 4. Main Game Loop Variables
@@ -622,6 +614,12 @@ int main(int argc, char* argv[]) {
         playerX = std::clamp(playerX, 0, SCREEN_WIDTH - playerW); 
 
         const Uint8* state = SDL_GetKeyboardState(NULL);
+
+        if (state[SDL_SCANCODE_RETURN]) {
+          if (GAMEOVER) {
+            SDL_QUIT;
+          }
+        }
 
         if (state[SDL_SCANCODE_LEFT] || state[SDL_SCANCODE_A]) {
           playerX -= SPEED;
