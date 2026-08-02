@@ -1,2 +1,20 @@
 # Space-InvadersC
-Space Invaders In C++ using SDL2
+
+A simple Space Invaders clone using C++ and SDL2
+
+## REQUIRED DEPENDENCIES
+
+  - SDL2
+
+  - SDL2_ttf
+
+  - SDL2_image
+
+  - SDL2_mixer
+
+## Linux Compilation 
+
+```
+g++ main.cpp -o SpaceInv -lSDL2 -lSDL2_ttf -lSDL2_image -lSDL2_mixer 
+```
+
