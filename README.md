@@ -30,7 +30,7 @@ A simple Space Invaders clone using C++ and SDL2
 g++ main.cpp -o SpaceInv -lSDL2 -lSDL2_ttf -lSDL2_image -lSDL2_mixer -std=c++23
 ```
 
-## Cmake Build
+## Cmake Build (Not Working)
 ```
 cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 ```
